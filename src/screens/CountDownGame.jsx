@@ -92,7 +92,9 @@ const mapping = [
 { input: "3,0", number: "50", point:"25",  type: "be" },
 ];
 
-const socket = io('http://192.168.1.16:3000');
+const socket = io('http://192.168.1.16:3000', {transports: ['websocket', 'polling', 'flashsocket']});
+// const socket = io('http://localhost:3000', {transports: ['websocket', 'polling', 'flashsocket']});
+
 import singleSound from '../../assets/single.mp3';
 import doubleSound  from '../../assets/Double.mp3';
 import tripleSound  from '../../assets/Triple.mp3';
