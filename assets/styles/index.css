@@ -1,0 +1,128 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h2 {
+  margin-top: 30px;
+}
+
+p {
+  margin-bottom: 5px;
+}
+
+.players-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Add this line */
+  width: 70%;
+  font-size: 30px;
+  /* margin-top: 100px; */
+}
+
+#capturedData1,
+#capturedData2 {
+  /* border: 1px solid #ccc; */
+  /* background-color: #fff; */
+  width: 80%; /* Adjust the width as needed */
+
+
+}
+
+#score1,
+#score2 {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+pre {
+  /* border: 1px solid #ccc; */
+  padding: 10px;
+  /* background-color: #fff; */
+  overflow-x: auto;
+}
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-box {
+  background-color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.dialog-box {
+  background-color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+#currentScore {
+  margin-top: 10%;
+  margin-bottom: 10%;
+  text-transform: uppercase;
+  font-family: verdana;
+  font-size: 15em;
+  font-weight: 700;
+  color: #f5f5f5;
+  text-shadow: 1px 1px 1px #919191,
+      1px 2px 1px #919191,
+      1px 3px 1px #919191,
+      1px 4px 1px #919191,
+      1px 5px 1px #919191,
+      1px 6px 1px #919191,
+      1px 7px 1px #919191,
+      1px 8px 1px #919191,
+      1px 9px 1px #919191,
+      1px 10px 1px #919191,
+  1px 18px 6px rgba(16,16,16,0.4),
+  1px 22px 10px rgba(16,16,16,0.2),
+  1px 25px 35px rgba(16,16,16,0.2),
+  1px 30px 60px rgba(16,16,16,0.4);
+}
+
+#player1style {
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(157,16,16,1) 100%, rgba(0,212,255,1) 100%);
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  padding-left: 200px; 
+  padding-right: 200px;
+  border-radius: 10px;
+  box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+}
+
+#player2style {
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(16,16,157,1) 55%, rgba(0,212,255,1) 100%);
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  padding-left: 200px; 
+  padding-right: 200px;
+  border-radius: 10px;
+  box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+}

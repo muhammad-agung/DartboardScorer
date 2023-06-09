@@ -1,0 +1,306 @@
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import io from 'socket.io-client';
+import Modal from 'react-native-modal';
+
+const Stack = createNativeStackNavigator();
+const socket = io('http://localhost:3000');
+
+export default function CountDownGame({route, navigation}) {
+    const { playerCount, maxStartingNumber } = route.params;
+    const [currentPlayer, setCurrentPlayer] = useState(1);
+    const [currentScore, setCurrentScore] = useState(0);
+    const [isPromptVisible, setIsPromptVisible] = useState(false);
+    const [playerScores, setPlayerScores] = useState({});
+    const [capturedData, setCapturedData] = useState([]);
+  
+    const playerColors = ['#FF0000', '#0000FF', '#FFFF00'];
+    const playerNames = ['Player 1', 'Player 2', 'Player 3'];
+  
+    useEffect(() => {
+  
+   // Initialize scores for each player
+   function initializeScores() {
+    const scores = {};
+    for (let i = 1; i <= playerCount; i++) {
+      scores[`player${i}`] = maxStartingNumber;
+    }
+    setPlayerScores(scores);
+  }
+
+  initializeScores();
+  
+  const handleArduinoData = (data) => {
+    const mappedItemToDigit = mapInputToNumber(data);
+    const checkForCharsData = checkForChars(data);
+
+    if (capturedData.length < 2) {
+      setCapturedData((prevData) => [...prevData, mappedItemToDigit]);
+      handleDecrementScore(mappedItemToDigit);
+    } else {
+      setIsPromptVisible(true);
+    }
+  };
+
+  socket.on('arduinoData', handleArduinoData);
+
+  return () => {
+    socket.off('arduinoData', handleArduinoData);
+  };
+}, [capturedData]);
+
+
+const handleDecrementScore = (number) => {
+    setPlayerScores((prevScores) => {
+      const updatedScores = { ...prevScores };
+
+      if (!updatedScores[`player${currentPlayer}`]) {
+        // If the score for the current player doesn't exist, initialize it
+        updatedScores[`player${currentPlayer}`] = maxStartingNumber;
+      }
+
+      updatedScores[`player${currentPlayer}`] -= number;
+      setCurrentScore(updatedScores[`player${currentPlayer}`]); // Update the current score
+
+      return updatedScores;
+    });
+  };
+      
+    
+    
+  
+    const mapping = [
+      // Mapping entries here
+    { input: "4,3", number: "20", type: "s" },
+    { input: "5,3", number: "60", type: "t" },
+    { input: "1,3", number: "40", type: "d" },
+  
+    { input: "2,9", number: "1", type: "s"  },
+    { input: "0,9", number: "3", type: "t" },
+    { input: "1,9", number: "2", type: "d" },
+  
+    { input: "2,8", number: "18", type: "s"  },
+    { input: "0,8", number: "54", type: "t" },
+    { input: "1,8", number: "36", type: "d" },
+  
+    { input: "2,7", number: "4", type: "s"  },
+    { input: "0,7", number: "12", type: "t" },
+    { input: "1,7", number: "8", type: "d" },
+  
+    { input: "2,6", number: "13", type: "s"  },
+    { input: "0,6", number: "39", type: "t" },
+    { input: "1,6", number: "26", type: "d" },
+  
+    { input: "2,5", number: "6", type: "s"  },
+    { input: "0,5", number: "18", type: "t" },
+    { input: "1,5", number: "12", type: "d" },
+  
+    { input: "2,4", number: "10", type: "s"  },
+    { input: "0,4", number: "30", type: "t" },
+    { input: "1,4", number: "20", type: "d" },
+  
+    { input: "4,4", number: "15", type: "s"  },
+    { input: "6,4", number: "45", type: "t" },
+    { input: "5,4", number: "30", type: "d" },
+  
+    { input: "4,5", number: "2", type: "s"  },
+    { input: "6,5", number: "6", type: "t" },
+    { input: "5,5", number: "4", type: "d" },
+  
+    { input: "4,6", number: "17", type: "s"  },
+    { input: "6,6", number: "51", type: "t" },
+    { input: "5,6", number: "34", type: "d" },
+  
+    { input: "4,7", number: "3", type: "s"  },
+    { input: "6,7", number: "9", type: "t" },
+    { input: "5,7", number: "6", type: "d" },
+  
+    { input: "4,8", number: "19", type: "s"  },
+    { input: "6,8", number: "57", type: "t" },
+    { input: "5,8", number: "38", type: "d" },
+  
+    { input: "4,9", number: "7", type: "s"  },
+    { input: "6,9", number: "21", type: "t" },
+    { input: "5,9", number: "14", type: "d" },
+  
+    { input: "4,3", number: "16", type: "s"  },
+    { input: "6,3", number: "32", type: "t" },
+    { input: "5,3", number: "48", type: "d" },
+  
+    { input: "4,2", number: "8", type: "s"  },
+    { input: "6,2", number: "24", type: "t" },
+    { input: "5,2", number: "16", type: "d" },
+  
+    { input: "4,1", number: "11", type: "s"  },
+    { input: "6,1", number: "33", type: "t" },
+    { input: "5,1", number: "22", type: "d" },
+  
+    { input: "4,0", number: "14", type: "s"  },
+    { input: "6,0", number: "42", type: "t" },
+    { input: "5,0", number: "28", type: "d" },
+  
+    { input: "2,0", number: "9", type: "s"  },
+    { input: "0,0", number: "27", type: "t" },
+    { input: "1,0", number: "18", type: "d" },
+  
+    { input: "2,1", number: "12", type: "s"  },
+    { input: "0,1", number: "36", type: "t" },
+    { input: "1,1", number: "24", type: "d" },
+  
+    { input: "2,2", number: "5", type: "s"  },
+    { input: "0,2", number: "15", type: "t" },
+    { input: "1,2", number: "10", type: "d" },
+  
+    { input: "3,1", number: "25", type: "b"  },
+    { input: "3,0", number: "110", type: "be" },
+    ];
+  
+    const mapInputToNumber = (input) => {
+      const mappedItem = mapping.find((item) =>
+        item.input.replace(/[\s,]/g, '') === input.toString().replace(/[\s,]/g, '')
+      );
+      if (mappedItem) {
+        return mappedItem.number.toString();
+      } else {
+        return "0"; // Default value for unmapped inputs
+      }
+    };
+  
+    function checkForChars(input) {
+      const mappedItem = mapping.find((item) => item.input.replace(/[\s,]/g, '') === input.toString().replace(/[\s,]/g, ''));
+      if (mappedItem) {
+        return mappedItem.type.toString();
+      } else {
+        return "s"; // Default value for unmapped inputs
+      }
+    }
+  
+    const handleNextTurn = () => {
+      setIsPromptVisible(false); // Show the modal when switching to the next player's turn
+      setCurrentPlayer((prevPlayer) => {
+        const nextPlayer = prevPlayer + 1 <= playerCount ? prevPlayer + 1 : 1;
+        return nextPlayer;
+      });
+      setCapturedData([]); // Reset the capturedData array
+    };
+  
+  const renderPlayerScores = () => {
+    const scores = [];
+    for (let i = 1; i <= playerCount; i++) {
+      scores.push(
+        <View
+          key={i}
+          style={[styles.playerScore, { backgroundColor: playerColors[i - 1] }]}
+        >
+          <Text style={styles.playerName}>{playerNames[i - 1]}</Text>
+          <Text style={styles.score}>
+            {playerScores[`player${i}`]}
+          </Text>
+        </View>
+      );
+    }
+    return scores;
+  };
+  
+    return (
+      <View style={styles.container}>
+        <View style={styles.scoresContainer}>{renderPlayerScores()}</View>
+        <View style={styles.currentPlayerContainer}>
+          <Text style={styles.currentPlayerText}>
+            {playerNames[currentPlayer - 1]}
+          </Text>
+          <Text style={styles.currentScore}>{currentScore}</Text>
+        </View>
+        <Modal isVisible={isPromptVisible} backdropOpacity={0.5}>
+          <View style={styles.promptContainer}>
+            <Text style={styles.promptText}>Next turn?</Text>
+            <TouchableOpacity
+              style={styles.promptButton}
+              onPress={handleNextTurn}
+            >
+              <Text style={styles.buttonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
+  
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 20,
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      marginBottom: 20,
+    },
+    button: {
+      backgroundColor: '#2196F3',
+      padding: 10,
+      borderRadius: 5,
+      marginRight: 10,
+    },
+    selectedButton: {
+      backgroundColor: '#FF0000',
+      padding: 10,
+      borderRadius: 5,
+      marginRight: 10,
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    scoresContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 20,
+    },
+    playerScore: {
+      alignItems: 'center',
+      padding: 10,
+      borderRadius: 5,
+    },
+    playerName: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    score: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    currentPlayerContainer: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    currentPlayerText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    currentScore: {
+      fontSize: 48,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    nextPlayerButton: {
+      backgroundColor: '#2196F3',
+      padding: 10,
+      borderRadius: 5,
+    },
+    incrementButton: {
+      backgroundColor: '#4CAF50',
+      padding: 20,
+      borderRadius: 50,
+    },
+  });
