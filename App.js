@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import MainScreen from './src/screens/MainScreen'
-import CountDown from './src/screens/CountDown'
+import CountDown from './src/screens/Countdown/CountDown'
 
 const Stack = createNativeStackNavigator();
 

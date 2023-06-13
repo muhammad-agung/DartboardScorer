@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/webpack-config": "^18.0.1",
+    "@react-navigation/native": "^6.1.6",
     "@react-navigation/native-stack": "^6.9.12",
     "cors": "^2.8.5",
     "expo": "~48.0.18",
@@ -26,7 +27,8 @@
     "socket.io-client": "^4.6.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "sharp-cli": "^4.1.1"
   },
   "private": true
 }
