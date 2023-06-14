@@ -37,6 +37,8 @@ function App({route}) {
 
   useEffect(() => {
 
+    console.log(capturedScore)
+
     //Handle enter button
     document.addEventListener('keydown', handleKeyDown);
     
@@ -49,7 +51,7 @@ function App({route}) {
 
       const mappedItemToDigit = mapInputToNumber(data);
 
-      if (capturingEnabled && mappedItemToDigit[2] !== "SKIP") {
+      if (capturingEnabled) {
         if (captureCount < 3) {
 
           //Update point
@@ -69,11 +71,6 @@ function App({route}) {
           
         }        
 
-      } else{
-        console.log(captureCount)
-        if (captureCount == 3) {
-          handleKeyDown(mappedItemToDigit[2])
-        }
       }
     });
 
@@ -118,20 +115,13 @@ function App({route}) {
 
       switch (mappedItem.type) {
         case "s":
-          type = "SINGLE";
-          break;
-        case "skip":
-          type = "SKIP";
-          break;
+          type = "SINGLE"
         case "d":
-          type = "DOUBLE";
-          break;
+          type = "DOUBLE"
         case "t":
-          type = "TRIPLE";
-          break;
+          type = "TRIPLE"
         default:
-          type = "SINGLE";
-          break;
+          type = "SINGLE"
       }
       return [number, point, type, char]
     } else {
@@ -201,8 +191,6 @@ function App({route}) {
     if (event.keyCode === 13) { // Check if the Enter key is pressed (key code 13)
       event.preventDefault(); // Prevent the default form submission behavior
       startButtonRef.current.click(); // Simulate a click on the Start button
-    } else if(event == "SKIP"){
-      startButtonRef.current.click(); // Simulate a click on the Start button\
     }
   };  
   
@@ -297,13 +285,13 @@ const startButtonRef = useRef(null);
       <div className="score-container">
         <h1 id="currentPlayer">Player {currentPlayer}</h1>
         <div>
+        <div style={{fontSize:"1.5vw", display:"flex", textAlign: "center", justifyContent: "center"}}>Round {currentRound}/15 </div>
           <p id="currentScore">{playerScores[`player${currentPlayer}`]}</p>
         </div>
           <div>
-              <div id="capturedThreeData">
-              <div style={{fontSize:"2vw", display:"flex", textAlign: "center", justifyContent: "center"}}>Round {currentRound}/15 </div>
+              <div id={"capturedThreeData"}>
                 {capturedData.map((data, i) => (
-                   <div id={`capturedThreeDataIndivudual${i+1}`} key={i}>{data}</div>
+                  <div key={i}>{data}</div>
                 ))}
               </div>
         </div>

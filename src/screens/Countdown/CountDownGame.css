@@ -5,9 +5,15 @@
   flex-direction: column;
   align-items: center;
   height: 100vh;
+  padding: 10%;
   justify-content: space-between;
-  background-color: #449bbb;
-  color: black;
+  background-color: black;
+  background-image: url('../../../assets/Image/backgroundGame.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .score-container {
@@ -15,12 +21,13 @@
   flex-direction: column;
   align-items: center;
   width: 60%;
-  height: 40%; /* Adjust the height as needed */
-  background-color: #449bbb;
+  height: 100%; /* Adjust the height as needed */
+  /* background-color: black; */
 }
 
 .score-container h1 {
   font-size: 4vw;
+  height: 20%;
   margin: 0;
   font-weight: bold;
   text-transform: uppercase;
@@ -54,6 +61,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-shadow: -1px 1px 0 #000,
+  1px 1px 0 #000,
+  1px -1px 0 #000,
+  -1px -1px 0 #000;
 }
 
 .players-container {
@@ -72,18 +83,29 @@
   text-transform: uppercase;
   font-weight: bolder;
   font-size: 1.5vw;
+  line-height: 1px;
+  /* border: 2px solid black; */
+  text-shadow: -1px 1px 0 #000,
+                1px 1px 0 #000,
+                1px -1px 0 #000,
+                -1px -1px 0 #000;
 }
 
 .player-1 {
-  background-color: #646b9b;
+  background-color: red;
+  margin-inline: 10px;
+  border-top-left-radius: 10px;
 }
 
 .player-2 {
-  background-color: #4cb379;
+  background-color: blue;
+  margin-inline: 10px;
 }
 
 .player-3 {
-  background-color: #7b9a65;
+  background-color: green;
+  margin-inline: 10px;
+  border-top-right-radius: 10px;
 }
 
 .pushable {
@@ -134,8 +156,24 @@
 #capturedThreeData {
   font-size: 3vw;
   position: absolute;
-  /* color: yellow; */
+  text-align: center;
+  width: 20vw;
   top: 40%;
   right: 5%;
   transform: translateY(-50%);
+}
+
+#capturedThreeDataIndivudual1{
+  border-bottom: 1px solid;
+  border-radius: 100px;
+}
+#capturedThreeDataIndivudual2{
+  border-bottom: 1px solid;
+  border-radius: 100px;
+
+}
+#capturedThreeDataIndivudual3{
+  border-bottom: 1px solid;
+  border-radius: 100px;
+
 }
