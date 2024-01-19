@@ -59,8 +59,8 @@ export default function MainScreen({ navigation }) {
     switch (mode) {
       case 'CountUp':
       case 'CountDownGameSetting':
-      case 'Cricket':
         navigation.navigate(mode, { serverIP: serverIP });
+      case 'Cricket':
         break;
 
       default:

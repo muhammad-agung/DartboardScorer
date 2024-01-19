@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import CountDownGameSingle from './CountDownGameSingle'
 
 const Stack = createNativeStackNavigator();
 
 import ChangeOption from "../../../assets/audio/changeoption.wav";
 import EnterOption from "../../../assets/audio/enter.wav";
 
-function GameSettingScreen({ navigation }) {
+export default function GameSettingScreen({ navigation, route }) {
   const [maxStartingNumber, setMaxStartingNumber] = useState(301);
   const [activePlayerCount, setActivePlayerCount] = useState(0);
-
+  const { serverIP } = route.params;
 
   const handleStartGame = () => {
     // Validate input and start the game
     if (activePlayerCount > 0) {
+      console.log(serverIP);
       playSound("enterSound"); // Play sound when starting the game
-      navigation.navigate('CountDownGameSingle', { totalPlayer: activePlayerCount, maxStartingNumber: maxStartingNumber});
+      navigation.navigate('CountDownGameSingle', { totalPlayer: activePlayerCount, maxStartingNumber: maxStartingNumber, serverIP: serverIP });
       // Add your own logic to start the Countdown game
     } else {
       console.log('Please select the number of players.');
@@ -35,7 +33,6 @@ function GameSettingScreen({ navigation }) {
     setMaxStartingNumber(number);
     playSound("changeOptionSound"); // Play sound when changing max starting number
   };
-
 
   function playSound(soundType) {
     let audioToPlay;
@@ -53,7 +50,7 @@ function GameSettingScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.gameContainer}>
       <Text style={styles.title}>Countdown Game</Text>
       <View style={styles.buttonContainer}>
         {/* Number of players buttons */}
@@ -86,25 +83,8 @@ function GameSettingScreen({ navigation }) {
   );
 }
 
-export default function App() {
-  return (
-      <Stack.Navigator>
-        <Stack.Screen
-          name="GameSettingScreen"
-          component={GameSettingScreen}
-          options={{ title: 'Countdown Game' }}
-        />
-        <Stack.Screen
-          name="CountDownGameSingle"
-          component={CountDownGameSingle}
-          options={{ title: 'Countdown Game' }}
-        />
-      </Stack.Navigator>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: {
+  gameContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -167,7 +147,7 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 10,
     borderWidth: 5,
-    borderColor: "grey"
+    borderColor: 'grey',
   },
   selectedButton: {
     backgroundColor: 'grey',
@@ -175,7 +155,7 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 10,
     borderWidth: 5,
-    borderColor: "grey"
+    borderColor: 'grey',
   },
   buttonText: {
     fontSize: 18,

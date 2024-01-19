@@ -30,6 +30,7 @@ function App({ route }) {
 });
 
 useState(() => {
+  console.log(serverIP)
   initializeScores();
 }, []);
 
