@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -7,50 +7,20 @@ import CountDownGame from './CountDownGame.jsx'
 
 const Stack = createNativeStackNavigator();
 
-import ChangeOption from "../../../assets/audio/changeoption.wav";
-import EnterOption from "../../../assets/audio/enter.wav";
-
 function GameSettingScreen({ navigation }) {
   const [maxStartingNumber, setMaxStartingNumber] = useState(301);
   const [activePlayerCount, setActivePlayerCount] = useState(0);
 
-
   const handleStartGame = () => {
     // Validate input and start the game
     if (activePlayerCount > 0) {
-      playSound("enterSound"); // Play sound when starting the game
+      console.log(`Starting Countdown game with ${activePlayerCount} players and max number ${maxStartingNumber}`);
       navigation.navigate('GameScreen', { totalPlayer: activePlayerCount, maxStartingNumber: maxStartingNumber});
       // Add your own logic to start the Countdown game
     } else {
       console.log('Please select the number of players.');
     }
   };
-
-  const handlePlayerCountChange = (count) => {
-    setActivePlayerCount(count);
-    playSound("changeOptionSound"); // Play sound when changing player count
-  };
-
-  const handleMaxNumberChange = (number) => {
-    setMaxStartingNumber(number);
-    playSound("changeOptionSound"); // Play sound when changing max starting number
-  };
-
-
-  function playSound(soundType) {
-    let audioToPlay;
-    switch (soundType) {
-      case "changeOptionSound":
-        audioToPlay = new Audio(ChangeOption);
-        break;
-      case "enterSound":
-        audioToPlay = new Audio(EnterOption);
-        break;
-      default:
-        audioToPlay = new Audio(EnterOption);
-    }
-    audioToPlay.play();
-  }
 
   return (
     <View style={styles.container}>
@@ -61,7 +31,7 @@ function GameSettingScreen({ navigation }) {
           <TouchableOpacity
             key={count}
             style={activePlayerCount === count ? styles.selectedButton : styles.button}
-            onPress={() => handlePlayerCountChange(count)}
+            onPress={() => setActivePlayerCount(count)}
           >
             <Text style={styles.buttonText}>{count}</Text>
           </TouchableOpacity>
@@ -73,7 +43,7 @@ function GameSettingScreen({ navigation }) {
           <TouchableOpacity
             key={number}
             style={maxStartingNumber === number ? styles.selectedButton : styles.button}
-            onPress={() => handleMaxNumberChange(number)}
+            onPress={() => setMaxStartingNumber(number)}
           >
             <Text style={styles.buttonText}>{number}</Text>
           </TouchableOpacity>
@@ -118,6 +88,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 20,
   },
+  button: {
+    backgroundColor: '#2196F3',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  selectedButton: {
+    backgroundColor: '#FF0000',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   scoresContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -160,25 +147,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     padding: 20,
     borderRadius: 50,
-  },
-  button: {
-    backgroundColor: 'transparent',
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
-    borderWidth: 5,
-    borderColor: "grey"
-  },
-  selectedButton: {
-    backgroundColor: 'grey',
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
-    borderWidth: 5,
-    borderColor: "grey"
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });

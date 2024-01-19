@@ -81,7 +81,7 @@ const mapping = [
   { input: "1,2", number: "10", point:"5",  type: "d" },
   
   { input: "3,1", number: "25", point:"25",  type: "b"  },
-  { input: "3,0", number: "50", point:"50",  type: "d" },
+  { input: "3,0", number: "50", point:"50",  type: "b" },
   { input: "9,9", number: "0", point:"0",  type: "skip" },
   ];
 

@@ -1,21 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Button } from 'react-native';
-import io from 'socket.io-client';
-import Modal from 'react-modal'; // Import the Modal component from react-modal
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, Button } from "react-native";
+import io from "socket.io-client";
+import Modal from "react-modal"; // Import the Modal component from react-modal
 
-import './CountDownGame.css'; // Import the CSS file for styling
-import mapping from '../Mapping';
+import "./CountDownGame.css"; // Import the CSS file for styling
+import mapping from "../Mapping";
 
-Modal.setAppElement('#root'); // Set the app element to the root element of your app
+Modal.setAppElement("#root"); // Set the app element to the root element of your app
 
-const socket = io('http://192.168.1.16:3000', {transports: ['websocket', 'polling', 'flashsocket']});
+// const socket = io("http://192.168.1.22:3000", {
+//   transports: ["websocket", "polling", "flashsocket"],
+// });
 
-import singleSound from '../../../assets/single.mp3';
-import doubleSound  from '../../../assets/Double.mp3';
-import tripleSound  from '../../../assets/Triple.mp3';
+const socket = io("http://192.168.1.22:3000", {
+  transports: ["websocket", "polling", "flashsocket"],
+});
 
 
-function App({route}) {
+
+
+import singleSound from "../../../assets/audio/single.mp3";
+import doubleSound from "../../../assets/audio/Double.mp3";
+import tripleSound from "../../../assets/audio/Triple.mp3";
+import bullSound from "../../../assets/audio/Bull.mp3";
+import bustedSound from "../../../assets/audio/Busted.mp3";
+import nextPlayerSound from "../../../assets/audio/enter.wav";
+
+function App({ route }) {
   const { totalPlayer, maxStartingNumber } = route.params;
   const [currentPlayer, setCurrentPlayer] = useState(1);
   const [totalPlayers] = useState(totalPlayer);
@@ -30,7 +41,6 @@ function App({route}) {
   const [isStartDialogOpen, setisStartDialogOpen] = useState(true); // State to control the dialog visibility
   const [isNegativeDialogOpen, setisNegativeDialogOpen] = useState(false);
 
-
   useState(() => {
     initializeScores();
   }, []);
@@ -38,54 +48,59 @@ function App({route}) {
   useEffect(() => {
 
     //Handle enter button
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // Update the score inside the player container whenever the playerScores state changes
-    document.getElementById(`score${currentPlayer}`).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
-    document.getElementById(`currentPlayer`).textContent = `Player ${currentPlayer}`;
-    
-    //Fetch data from server
-    socket.on('arduinoData', (data) => {
+    document.addEventListener("keydown", handleKeyDown);
 
+    // Update the score inside the player container whenever the playerScores state changes
+    document.getElementById(`score${currentPlayer}`).textContent = `Score: ${
+      playerScores[`player${currentPlayer}`]
+    }`;
+    document.getElementById(
+      `currentPlayer`
+    ).textContent = `Player ${currentPlayer}`;
+
+    //Fetch data from server
+    socket.on("arduinoData", (data) => {
+      console.log(data)
       const mappedItemToDigit = mapInputToNumber(data);
 
       if (capturingEnabled && mappedItemToDigit[2] !== "SKIP") {
         if (captureCount < 3) {
-
           //Update point
-          let capturedDatawithType = mappedItemToDigit[2] + " " + mappedItemToDigit[0]
+          let capturedDatawithType =
+            mappedItemToDigit[2] + " " + mappedItemToDigit[1];
           setCapturedData([...capturedData, capturedDatawithType]);
           setCaptureCount(captureCount + 1);
           setCapturedScore([...capturedScore, mappedItemToDigit[0]]);
 
           //update current score
-          calculateScore(mappedItemToDigit[1])
+          calculateScore(mappedItemToDigit[1], mappedItemToDigit[3]);
 
           //update displayed player score
-          document.getElementById(`score${currentPlayer}`).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
-
-          //Play audio
-          Playsound(mappedItemToDigit[3]);
-          
-        }        
-
-      } else{
-        console.log(captureCount)
-        if (captureCount == 3) {
-          handleKeyDown(mappedItemToDigit[2])
+          document.getElementById(
+            `score${currentPlayer}`
+          ).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
+        }
+      } else {
+        if (captureCount == 3 || isNegativeDialogOpen == true) {
+          handleKeyDown(mappedItemToDigit[2]);
         }
       }
     });
 
     return () => {
-      socket.off('arduinoData');
-      document.removeEventListener('keydown', handleKeyDown);
+      socket.off("arduinoData");
+      document.removeEventListener("keydown", handleKeyDown);
     };
-    
-  }, [capturingEnabled, captureCount, capturedData, currentRound, currentPlayer, playerScores]);
+  }, [
+    capturingEnabled,
+    captureCount,
+    capturedData,
+    currentRound,
+    currentPlayer,
+    playerScores,
+  ]);
 
-  
-  function Playsound(soundType){
+  function playSoundVideo(soundType) {
     let audioToPlay;
     switch (soundType) {
       case "s":
@@ -97,24 +112,34 @@ function App({route}) {
       case "t":
         audioToPlay = new Audio(tripleSound);
         break;
+      case "busted":
+        audioToPlay = new Audio(bustedSound);
+        break;
+      case "b":
+        audioToPlay = new Audio(bullSound);
+        break;
+      case "next":
+        audioToPlay = new Audio(nextPlayerSound);
+        break;
       default:
         audioToPlay = new Audio(singleSound);
     }
     audioToPlay.play();
   }
-  
-  
+
   // Map input data to numbers
   function mapInputToNumber(input) {
-    
-    const mappedItem = mapping.find((item) => item.input.replace(/[\s,]/g, '') === input.toString().replace(/[\s,]/g, ''));
+    const mappedItem = mapping.find(
+      (item) =>
+        item.input.replace(/[\s,]/g, "") ===
+        input.toString().replace(/[\s,]/g, "")
+    );
 
     if (mappedItem) {
-
-      let number = mappedItem.number.toString()
-      let point = mappedItem.point.toString()
-      let type = ""
-      let char = mappedItem.type.toString()
+      let number = mappedItem.number.toString();
+      let point = mappedItem.point.toString();
+      let type = "";
+      let char = mappedItem.type.toString();
 
       switch (mappedItem.type) {
         case "s":
@@ -133,13 +158,11 @@ function App({route}) {
           type = "SINGLE";
           break;
       }
-      return [number, point, type, char]
+      return [number, point, type, char];
     } else {
       return "0"; // Default value for unmapped inputs
     }
   }
-
-
 
   // Initialize scores for each player
   function initializeScores() {
@@ -149,63 +172,73 @@ function App({route}) {
     }
     setPlayerScores(scores);
   }
-  
 
   // Calculate the score based on the subtracted values
-  function calculateScore(number) {
+  function calculateScore(number, sound) {
     let result = playerScores[`player${currentPlayer}`];
     let previousScore = result;
-    let dialogstate = true
-  
+    let dialogstate = true;
+    let soundPlay = sound;
+
     let tempResult = result - parseInt(number);
-  
+
     if (tempResult <= 0) {
       if (tempResult === 0) {
-        showWinnerDialog(currentPlayer, result);
+        showWinnerDialog(currentPlayer, tempResult);
       } else {
         showNegativeScoreDialog();
+        soundPlay = "busted";
       }
-      if(capturedScore.length == 2){
-        result = previousScore + parseInt(capturedScore[0]) + parseInt(capturedScore[1]); // Restore previous score if the result is non-positive
-      } else if(capturedScore.length == 1){
-        result = previousScore + parseInt(capturedScore[0])
-      } else{
-      result = previousScore; // Restore previous score if the result is non-positive
+      if (capturedScore.length == 2) {
+        result =
+          previousScore +
+          parseInt(capturedScore[0]) +
+          parseInt(capturedScore[1]); // Restore previous score if the result is non-positive
+      } else if (capturedScore.length == 1) {
+        result = previousScore + parseInt(capturedScore[0]);
+      } else {
+        result = previousScore; // Restore previous score if the result is non-positive
       }
       setCapturingEnabled(false); // Disable capturing functionality
-      dialogstate  = false; // Toggle the dialog state based on the isNegativeDialogOpen state
+      dialogstate = false; // Toggle the dialog state based on the isNegativeDialogOpen state
     } else {
       result = tempResult;
     }
-  
-    setPlayerScores(prevPlayerScores => ({
+
+    setPlayerScores((prevPlayerScores) => ({
       ...prevPlayerScores,
-      [`player${currentPlayer}`]: result
+      [`player${currentPlayer}`]: result,
     }));
 
-    
     if (captureCount == 2) {
-      setTimeout(function() {
-          setCapturingEnabled(false);
-          setIsDialogOpen(dialogstate); // Open the dialog
+      setTimeout(function () {
+        setCapturingEnabled(false);
+        setIsDialogOpen(dialogstate); // Open the dialog
       }, 1000);
     }
 
-    document.getElementById(`currentScore`).textContent = `${playerScores[`player${currentPlayer}`]}`;
-    document.getElementById(`currentPlayer`).textContent = `Player ${currentPlayer}`;
+    //Play audio
+    playSoundVideo(soundPlay);
+
+    document.getElementById(`currentScore`).textContent = `${
+      playerScores[`player${currentPlayer}`]
+    }`;
+    document.getElementById(
+      `currentPlayer`
+    ).textContent = `Player ${currentPlayer}`;
     return result;
   }
 
   // Function to handle keydown event
-  function handleKeyDown (event) {
-    if (event.keyCode === 13) { // Check if the Enter key is pressed (key code 13)
+  function handleKeyDown(event) {
+    if (event.keyCode === 13) {
+      // Check if the Enter key is pressed (key code 13)
       event.preventDefault(); // Prevent the default form submission behavior
       startButtonRef.current.click(); // Simulate a click on the Start button
-    } else if(event == "SKIP"){
+    } else if (event == "SKIP") {
       startButtonRef.current.click(); // Simulate a click on the Start button\
     }
-  };  
-  
+  }
 
   function startNextTurn() {
     if (!capturingEnabled) {
@@ -216,6 +249,7 @@ function App({route}) {
     }
     document.getElementById("startGame").style.display = "none";
     setisStartDialogOpen(false);
+    playSoundVideo("next");
     removeDialogOverlay(); // Remove dialog overlay when next player's turn starts
   }
 
@@ -226,7 +260,7 @@ function App({route}) {
 
     if (currentPlayer === totalPlayers) {
       setCurrentPlayer(1);
-      setCurrentRound(prevCurrentRound => prevCurrentRound + 1);
+      setCurrentRound((prevCurrentRound) => prevCurrentRound + 1);
 
       if (currentRound > totalRounds) {
         let winner = null;
@@ -245,9 +279,10 @@ function App({route}) {
         return; // Exit the function and stop thze game
       }
     } else {
-      setCurrentPlayer(prevCurrentPlayer => prevCurrentPlayer + 1);
+      setCurrentPlayer((prevCurrentPlayer) => prevCurrentPlayer + 1);
       showCurentScore(currentPlayer);
     }
+    playSoundVideo("next");
     setIsDialogOpen(false);
     setisNegativeDialogOpen(false);
     setCapturingEnabled(true); // Enable capturing functionality for the next player
@@ -256,25 +291,20 @@ function App({route}) {
 
   // Show negative score dialog
   function showNegativeScoreDialog() {
-
     setisNegativeDialogOpen(true);
-    // removeDialogOverlay(); // Remove dialog overlay when next player's turn starts
-    // Play sound effect
-    // playSoundEffectBusted();
   }
 
   function showWinnerDialog(winner, score) {
     const dialogOverlay = document.createElement("div");
     dialogOverlay.classList.add("dialog-overlay");
-  
+
     const dialogBox = document.createElement("div");
     dialogBox.classList.add("dialog-box");
     dialogBox.textContent = `Player ${winner} wins with a score of ${score}!`;
-  
+
     dialogOverlay.appendChild(dialogBox);
     document.body.appendChild(dialogOverlay);
   }
-  
 
   // Remove dialog overlay function
   function removeDialogOverlay() {
@@ -285,13 +315,16 @@ function App({route}) {
   }
 
   function showCurentScore(input) {
-    document.getElementById(`currentScore`).textContent = `${playerScores[`player${input}`]}`;
-    document.getElementById(`currentPlayer`).textContent = `Player ${currentPlayer}`;
+    document.getElementById(`currentScore`).textContent = `${
+      playerScores[`player${input}`]
+    }`;
+    document.getElementById(
+      `currentPlayer`
+    ).textContent = `Player ${currentPlayer}`;
   }
 
-
   // Ref for the Start button
-const startButtonRef = useRef(null);
+  const startButtonRef = useRef(null);
   return (
     <div className="game-container">
       <div className="score-container">
@@ -299,13 +332,24 @@ const startButtonRef = useRef(null);
         <div>
           <p id="currentScore">{playerScores[`player${currentPlayer}`]}</p>
         </div>
-          <div>
-              <div id="capturedThreeData">
-              <div style={{fontSize:"2vw", display:"flex", textAlign: "center", justifyContent: "center"}}>Round {currentRound}/15 </div>
-                {capturedData.map((data, i) => (
-                   <div id={`capturedThreeDataIndivudual${i+1}`} key={i}>{data}</div>
-                ))}
+        <div>
+          <div id="capturedThreeData">
+            <div
+              style={{
+                fontSize: "2vw",
+                display: "flex",
+                textAlign: "center",
+                justifyContent: "center",
+              }}
+            >
+              Round {currentRound}/15{" "}
+            </div>
+            {capturedData.map((data, i) => (
+              <div id={`capturedThreeDataIndivudual${i + 1}`} key={i}>
+                {data}
               </div>
+            ))}
+          </div>
         </div>
       </div>
       <div className="players-container">
@@ -313,71 +357,83 @@ const startButtonRef = useRef(null);
           <div key={index} className={`player-style player-${index + 1}`}>
             <h2 id={`player${index + 1}`}>Player {index + 1}</h2>
             <div id={`capturedData${index + 1}`}></div>
-            <p id={`score${index + 1}`}>Score: {playerScores[`player${index + 1}`]}</p>
+            <p id={`score${index + 1}`}>
+              Score: {playerScores[`player${index + 1}`]}
+            </p>
           </div>
         ))}
       </div>
       <Modal
-          style={{
-            overlay: {
-              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Translucent background color
-            },
-            content: {
-              fontSize: "3vw",
-              color:"white",
-              backgroundColor: 'rgba(0, 0, 0, 0.1)', // Translucent background color
-              textAlign: 'center',
-              padding: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          }}
-        isOpen={isStartDialogOpen} onRequestClose={() => setisStartDialogOpen(false)}>
-        <button id="startGame" className="pushable" onClick={startNextTurn}>  <span className="front">START GAME</span></button>
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.1)", // Translucent background color
+          },
+          content: {
+            fontSize: "3vw",
+            color: "white",
+            backgroundColor: "transparent", // Translucent background color
+            textAlign: "center",
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            border: "none",
+          },
+        }}
+        isOpen={isStartDialogOpen}
+        onRequestClose={() => setisStartDialogOpen(false)}
+      >
+        <button id="startGame" className="pushable" onClick={startNextTurn}>
+          {" "}
+          <span className="front">START GAME</span>
+        </button>
       </Modal>
       <Modal
-          style={{
-            overlay: {
-              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Translucent background color
-            },
-            content: {
-              fontSize: "3vw",
-              color:"white",
-              backgroundColor: 'rgba(0, 0, 0, 0.1)', // Translucent background color
-              textAlign: 'center',
-              padding: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          }}
-        isOpen={isNegativeDialogOpen} onRequestClose={() => setisNegativeDialogOpen(false)}>
-        <p>Busted! It's now Player {currentPlayer === totalPlayer ? 1 : currentPlayer + 1}'s turn.</p>
-        <button className="pushable" ref={startButtonRef} onClick={nextPlayerTurn}>  <span className="front">NEXT TURN</span></button>
-      </Modal>
-      <Modal
-          style={{
-            overlay: {
-              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Translucent background color
-            },
-            content: {
-              fontSize: "3vw",
-              color:"white",
-              backgroundColor: 'rgba(0, 0, 0, 0.1)', // Translucent background color
-              textAlign: 'center',
-              padding: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          }}
-        isOpen={isDialogOpen} onRequestClose={() => setIsDialogOpen(false)}>
-        <p>It's now Player {currentPlayer === totalPlayer ? 1 : currentPlayer + 1}'s turn.</p>
-        <button className="pushable" ref={startButtonRef} onClick={nextPlayerTurn}>  <span className="front">NEXT TURN</span></button>
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0, 0, 0, 0.1)", // Translucent background color
+          },
+          content: {
+            fontSize: "3vw",
+            color: "white",
+            backgroundColor: "transparent", // Translucent background color
+            textAlign: "center",
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            border: "none",
+          },
+        }}
+        isOpen={isDialogOpen || isNegativeDialogOpen}
+        onRequestClose={() => setIsDialogOpen(false)}
+      >
+        <View
+        >
+          {isNegativeDialogOpen ? (
+           <button
+            className="pushable"
+            ref={startButtonRef}
+            onClick={nextPlayerTurn}
+            >
+            {" "}
+            <span className="front">Busted! Player{" "}
+            {currentPlayer === totalPlayer ? 1 : currentPlayer + 1}'s turn</span>
+          </button>
+          ) : (
+            <button
+            className="pushable"
+            ref={startButtonRef}
+            onClick={nextPlayerTurn}
+            >
+            {" "}
+            <span className="front">Player{" "}
+            {currentPlayer === totalPlayer ? 1 : currentPlayer + 1}'s turn</span>
+          </button>
+          )}
+        </View>
       </Modal>
     </div>
   );

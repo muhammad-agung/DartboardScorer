@@ -1,10 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, Alert } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Alert, ImageBackground  } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import EnterOption from "../../assets/audio/enter.wav";
+
 export default function MainScreen({navigation}) {
+  let audioToPlay;
   const handleGameModeSelection = (mode) => {
+    audioToPlay = new Audio(EnterOption);
     switch (mode) {
         case 'CountUp':
             navigation.navigate('CountUp')
@@ -21,6 +25,7 @@ export default function MainScreen({navigation}) {
         default:
         Alert("error")
         }
+        audioToPlay.play();
   };
 
   return (
@@ -55,18 +60,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 30,
+    textTransform: "uppercase"
   },
   button: {
-    backgroundColor: '#2196F3',
+    backgroundColor: 'transparent',
     padding: 10,
     marginBottom: 20,
-    borderRadius: 5,
+    borderRadius: 10,
+    borderWidth: 5,
+    borderColor: "grey"
   },
   buttonText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
