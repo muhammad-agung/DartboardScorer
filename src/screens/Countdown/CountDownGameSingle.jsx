@@ -2,176 +2,79 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Button } from "react-native";
 import io from "socket.io-client";
 import Modal from "react-modal"; // Import the Modal component from react-modal
+import "./Styles/CountDownGame.css"; // Import the CSS file for styling
 
-import "./CountDownGame.css"; // Import the CSS file for styling
-import mapping from "../Mapping";
+import { playSoundVideo } from "./Functions/PlaySoundVideo";
+import { mapDataToDigitFunction } from "./Functions/mapDataToDigitFunction";
+
 
 Modal.setAppElement("#root"); // Set the app element to the root element of your app
 
-// const socket = io("http://192.168.1.22:3000", {
-//   transports: ["websocket", "polling", "flashsocket"],
-// });
-
-const socket = io("http://192.168.1.22:3000", {
-  transports: ["websocket", "polling", "flashsocket"],
-});
-
-
-
-
-import singleSound from "../../../assets/audio/single.mp3";
-import doubleSound from "../../../assets/audio/Double.mp3";
-import tripleSound from "../../../assets/audio/Triple.mp3";
-import bullSound from "../../../assets/audio/Bull.mp3";
-import bustedSound from "../../../assets/audio/Busted.mp3";
-import nextPlayerSound from "../../../assets/audio/enter.wav";
-
 function App({ route }) {
-  const { totalPlayer, maxStartingNumber } = route.params;
-  const [currentPlayer, setCurrentPlayer] = useState(1);
-  const [totalPlayers] = useState(totalPlayer);
+  const {maxStartingNumber, serverIP } = route.params;
+  const [currentPlayer] = useState(1);
+  const [totalPlayers] = useState(1);
   const [totalRounds] = useState(14);
   const [currentRound, setCurrentRound] = useState(1);
-  const [captureCount, setCaptureCount] = useState(0);
+  const [captureCount, setCapturedCount] = useState(0);
   const [capturedData, setCapturedData] = useState([]);
   const [capturedScore, setCapturedScore] = useState([]);
-  const [capturingEnabled, setCapturingEnabled] = useState(false);
+  const [RoundcapturingEnabled, setRoundcapturingEnabled] = useState(false);
   const [playerScores, setPlayerScores] = useState({});
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State to control the dialog visibility
   const [isStartDialogOpen, setisStartDialogOpen] = useState(true); // State to control the dialog visibility
   const [isNegativeDialogOpen, setisNegativeDialogOpen] = useState(false);
 
-  useState(() => {
-    initializeScores();
-  }, []);
+  const socket = io(serverIP, {
+  transports: ["websocket", "polling", "flashsocket"],
+});
 
-  useEffect(() => {
+useState(() => {
+  initializeScores();
+}, []);
 
-    //Handle enter button
-    document.addEventListener("keydown", handleKeyDown);
+// Initialize scores for each player
+function initializeScores() {
+  const scores = {};
+    scores[`player${1}`] = maxStartingNumber;
+  setPlayerScores(scores);
+}
 
-    // Update the score inside the player container whenever the playerScores state changes
-    document.getElementById(`score${currentPlayer}`).textContent = `Score: ${
-      playerScores[`player${currentPlayer}`]
-    }`;
-    document.getElementById(
-      `currentPlayer`
-    ).textContent = `Player ${currentPlayer}`;
+useEffect(() => {
 
-    //Fetch data from server
-    socket.on("arduinoData", (data) => {
-      console.log(data)
-      const mappedItemToDigit = mapInputToNumber(data);
+  //Handle enter button
+  document.addEventListener("keydown", handleEnterKeyFunction);
 
-      if (capturingEnabled && mappedItemToDigit[2] !== "SKIP") {
-        if (captureCount < 3) {
-          //Update point
-          let capturedDatawithType =
-            mappedItemToDigit[2] + " " + mappedItemToDigit[1];
-          setCapturedData([...capturedData, capturedDatawithType]);
-          setCaptureCount(captureCount + 1);
-          setCapturedScore([...capturedScore, mappedItemToDigit[0]]);
+  // Update the score inside the player container whenever the playerScores state changes
+  document.getElementById(`score${currentPlayer}`).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
+  document.getElementById(`currentPlayer`).textContent = `Player ${currentPlayer}`;
 
-          //update current score
-          calculateScore(mappedItemToDigit[1], mappedItemToDigit[3]);
+  //Fetch data from server
+  socket.on("arduinoData", (data) => {
+    const mappedArduinoDataToDigit = mapDataToDigitFunction(data);
 
-          //update displayed player score
-          document.getElementById(
-            `score${currentPlayer}`
-          ).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
-        }
-      } else {
-        if (captureCount == 3 || isNegativeDialogOpen == true) {
-          handleKeyDown(mappedItemToDigit[2]);
-        }
+    if (RoundcapturingEnabled && mappedArduinoDataToDigit[2] !== "SKIP") {
+      if (captureCount < 3) {
+        //Update point
+        let capturedDatawithType = mappedArduinoDataToDigit[2] + " " + mappedArduinoDataToDigit[1];
+        setCapturedData([...capturedData, capturedDatawithType]);
+        setCapturedCount(captureCount + 1);
+        setCapturedScore([...capturedScore, mappedArduinoDataToDigit[0]]);
+        calculateScore(mappedArduinoDataToDigit[1], mappedArduinoDataToDigit[3]);
       }
-    });
-
-    return () => {
-      socket.off("arduinoData");
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [
-    capturingEnabled,
-    captureCount,
-    capturedData,
-    currentRound,
-    currentPlayer,
-    playerScores,
-  ]);
-
-  function playSoundVideo(soundType) {
-    let audioToPlay;
-    switch (soundType) {
-      case "s":
-        audioToPlay = new Audio(singleSound);
-        break;
-      case "d":
-        audioToPlay = new Audio(doubleSound);
-        break;
-      case "t":
-        audioToPlay = new Audio(tripleSound);
-        break;
-      case "busted":
-        audioToPlay = new Audio(bustedSound);
-        break;
-      case "b":
-        audioToPlay = new Audio(bullSound);
-        break;
-      case "next":
-        audioToPlay = new Audio(nextPlayerSound);
-        break;
-      default:
-        audioToPlay = new Audio(singleSound);
-    }
-    audioToPlay.play();
-  }
-
-  // Map input data to numbers
-  function mapInputToNumber(input) {
-    const mappedItem = mapping.find(
-      (item) =>
-        item.input.replace(/[\s,]/g, "") ===
-        input.toString().replace(/[\s,]/g, "")
-    );
-
-    if (mappedItem) {
-      let number = mappedItem.number.toString();
-      let point = mappedItem.point.toString();
-      let type = "";
-      let char = mappedItem.type.toString();
-
-      switch (mappedItem.type) {
-        case "s":
-          type = "SINGLE";
-          break;
-        case "skip":
-          type = "SKIP";
-          break;
-        case "d":
-          type = "DOUBLE";
-          break;
-        case "t":
-          type = "TRIPLE";
-          break;
-        default:
-          type = "SINGLE";
-          break;
-      }
-      return [number, point, type, char];
     } else {
-      return "0"; // Default value for unmapped inputs
+      if (isNegativeDialogOpen == true) {
+        handleEnterKeyFunction(mappedArduinoDataToDigit[2]);
+      }
     }
-  }
+  });
 
-  // Initialize scores for each player
-  function initializeScores() {
-    const scores = {};
-    for (let i = 1; i <= totalPlayer; i++) {
-      scores[`player${i}`] = maxStartingNumber;
-    }
-    setPlayerScores(scores);
-  }
+  return () => {
+    socket.off("arduinoData");
+    document.removeEventListener("keydown", handleEnterKeyFunction);
+  };
+}, [RoundcapturingEnabled, captureCount, capturedData, currentRound, currentPlayer, playerScores]);
+
 
   // Calculate the score based on the subtracted values
   function calculateScore(number, sound) {
@@ -189,17 +92,11 @@ function App({ route }) {
         showNegativeScoreDialog();
         soundPlay = "busted";
       }
-      if (capturedScore.length == 2) {
-        result =
-          previousScore +
-          parseInt(capturedScore[0]) +
-          parseInt(capturedScore[1]); // Restore previous score if the result is non-positive
-      } else if (capturedScore.length == 1) {
-        result = previousScore + parseInt(capturedScore[0]);
-      } else {
-        result = previousScore; // Restore previous score if the result is non-positive
-      }
-      setCapturingEnabled(false); // Disable capturing functionality
+
+      if (capturedScore.length > 0) {
+      result += capturedScore.reduce((sum, score) => sum + parseInt(score), 0);
+    }
+      setRoundcapturingEnabled(false); // Disable capturing functionality
       dialogstate = false; // Toggle the dialog state based on the isNegativeDialogOpen state
     } else {
       result = tempResult;
@@ -212,7 +109,7 @@ function App({ route }) {
 
     if (captureCount == 2) {
       setTimeout(function () {
-        setCapturingEnabled(false);
+        setRoundcapturingEnabled(false);
         setIsDialogOpen(dialogstate); // Open the dialog
       }, 1000);
     }
@@ -220,17 +117,14 @@ function App({ route }) {
     //Play audio
     playSoundVideo(soundPlay);
 
-    document.getElementById(`currentScore`).textContent = `${
-      playerScores[`player${currentPlayer}`]
-    }`;
-    document.getElementById(
-      `currentPlayer`
-    ).textContent = `Player ${currentPlayer}`;
+    document.getElementById(`currentScore`).textContent = `${playerScores[`player${currentPlayer}`]}`;
+    document.getElementById(`currentPlayer`).textContent = `Player ${currentPlayer}`;
+    document.getElementById(`score${currentPlayer}`).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
     return result;
   }
 
   // Function to handle keydown event
-  function handleKeyDown(event) {
+  function handleEnterKeyFunction(event) {
     if (event.keyCode === 13) {
       // Check if the Enter key is pressed (key code 13)
       event.preventDefault(); // Prevent the default form submission behavior
@@ -241,9 +135,9 @@ function App({ route }) {
   }
 
   function startNextTurn() {
-    if (!capturingEnabled) {
-      setCapturingEnabled(true);
-      setCaptureCount(0);
+    if (!RoundcapturingEnabled) {
+      setRoundcapturingEnabled(true);
+      setCapturedCount(0);
       setCapturedData([]);
       setCapturedScore([]);
     }
@@ -254,12 +148,11 @@ function App({ route }) {
   }
 
   function nextPlayerTurn() {
-    setCaptureCount(0);
+    setCapturedCount(0);
     setCapturedData([]);
     setCapturedScore([]);
 
-    if (currentPlayer === totalPlayers) {
-      setCurrentPlayer(1);
+    if (currentPlayer === 1) {
       setCurrentRound((prevCurrentRound) => prevCurrentRound + 1);
 
       if (currentRound > totalRounds) {
@@ -274,18 +167,23 @@ function App({ route }) {
             winner = i;
           }
         }
-        // Display the winner
-        showWinnerDialog(currentPlayer, lowestScore);
+
+        if (lowestScore === 0) {
+          // Player reached zero, show winning dialog
+          showWinnerDialog(winner, lowestScore);
+        } else {
+          // Player didn't reach zero after round ends, show failure dialog
+          showFailureDialog();
+        }
         return; // Exit the function and stop thze game
       }
     } else {
-      setCurrentPlayer((prevCurrentPlayer) => prevCurrentPlayer + 1);
       showCurentScore(currentPlayer);
     }
     playSoundVideo("next");
     setIsDialogOpen(false);
     setisNegativeDialogOpen(false);
-    setCapturingEnabled(true); // Enable capturing functionality for the next player
+    setRoundcapturingEnabled(true); // Enable capturing functionality for the next player
     removeDialogOverlay(); // Remove dialog overlay when next player's turn starts
   }
 
@@ -294,17 +192,30 @@ function App({ route }) {
     setisNegativeDialogOpen(true);
   }
 
-  function showWinnerDialog(winner, score) {
+  function showWinnerDialog(winner) {
     const dialogOverlay = document.createElement("div");
     dialogOverlay.classList.add("dialog-overlay");
 
     const dialogBox = document.createElement("div");
     dialogBox.classList.add("dialog-box");
-    dialogBox.textContent = `Player ${winner} wins with a score of ${score}!`;
+    dialogBox.textContent = `Player ${winner} win!`;
 
     dialogOverlay.appendChild(dialogBox);
     document.body.appendChild(dialogOverlay);
   }
+
+  // Show failure dialog
+function showFailureDialog() {
+  const dialogOverlay = document.createElement("div");
+  dialogOverlay.classList.add("dialog-overlay");
+
+  const dialogBox = document.createElement("div");
+  dialogBox.classList.add("dialog-box");
+  dialogBox.textContent = `Player ${currentPlayer} failed!`;
+
+  dialogOverlay.appendChild(dialogBox);
+  document.body.appendChild(dialogOverlay);
+}
 
   // Remove dialog overlay function
   function removeDialogOverlay() {
@@ -335,13 +246,7 @@ function App({ route }) {
         <div>
           <div id="capturedThreeData">
             <div
-              style={{
-                fontSize: "2vw",
-                display: "flex",
-                textAlign: "center",
-                justifyContent: "center",
-              }}
-            >
+              className="roundData">
               Round {currentRound}/15{" "}
             </div>
             {capturedData.map((data, i) => (
@@ -353,7 +258,7 @@ function App({ route }) {
         </div>
       </div>
       <div className="players-container">
-        {[...Array(totalPlayer)].map((_, index) => (
+        {[...Array(1)].map((_, index) => (
           <div key={index} className={`player-style player-${index + 1}`}>
             <h2 id={`player${index + 1}`}>Player {index + 1}</h2>
             <div id={`capturedData${index + 1}`}></div>
@@ -366,7 +271,7 @@ function App({ route }) {
       <Modal
         style={{
           overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.1)", // Translucent background color
+            backgroundColor: "rgba(0, 0, 0, 0.9)", // Translucent background color
           },
           content: {
             fontSize: "3vw",
@@ -392,7 +297,7 @@ function App({ route }) {
       <Modal
         style={{
           overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.1)", // Translucent background color
+            backgroundColor: "rgba(0, 0, 0, 0.9)", // Translucent background color
           },
           content: {
             fontSize: "3vw",
@@ -419,8 +324,7 @@ function App({ route }) {
             onClick={nextPlayerTurn}
             >
             {" "}
-            <span className="front">Busted! Player{" "}
-            {currentPlayer === totalPlayer ? 1 : currentPlayer + 1}'s turn</span>
+            <span className="front">Busted!</span>
           </button>
           ) : (
             <button
@@ -429,8 +333,7 @@ function App({ route }) {
             onClick={nextPlayerTurn}
             >
             {" "}
-            <span className="front">Player{" "}
-            {currentPlayer === totalPlayer ? 1 : currentPlayer + 1}'s turn</span>
+            <span className="front">Next turn</span>
           </button>
           )}
         </View>

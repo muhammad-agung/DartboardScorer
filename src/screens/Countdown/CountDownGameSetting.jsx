@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, TextInput, Platform } from 'r
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import CricketGame from './CricketGame.jsx'
+import CountDownGameSingle from './CountDownGameSingle'
 
 const Stack = createNativeStackNavigator();
 
@@ -11,6 +11,7 @@ import ChangeOption from "../../../assets/audio/changeoption.wav";
 import EnterOption from "../../../assets/audio/enter.wav";
 
 function GameSettingScreen({ navigation }) {
+  const [maxStartingNumber, setMaxStartingNumber] = useState(301);
   const [activePlayerCount, setActivePlayerCount] = useState(0);
 
 
@@ -18,7 +19,7 @@ function GameSettingScreen({ navigation }) {
     // Validate input and start the game
     if (activePlayerCount > 0) {
       playSound("enterSound"); // Play sound when starting the game
-      navigation.navigate('GameScreen', { totalPlayer: activePlayerCount});
+      navigation.navigate('CountDownGameSingle', { totalPlayer: activePlayerCount, maxStartingNumber: maxStartingNumber});
       // Add your own logic to start the Countdown game
     } else {
       console.log('Please select the number of players.');
@@ -28,6 +29,11 @@ function GameSettingScreen({ navigation }) {
   const handlePlayerCountChange = (count) => {
     setActivePlayerCount(count);
     playSound("changeOptionSound"); // Play sound when changing player count
+  };
+
+  const handleMaxNumberChange = (number) => {
+    setMaxStartingNumber(number);
+    playSound("changeOptionSound"); // Play sound when changing max starting number
   };
 
 
@@ -61,6 +67,18 @@ function GameSettingScreen({ navigation }) {
           </TouchableOpacity>
         ))}
       </View>
+      <View style={styles.buttonContainer}>
+        {/* Max starting number buttons */}
+        {[301, 501, 701].map((number) => (
+          <TouchableOpacity
+            key={number}
+            style={maxStartingNumber === number ? styles.selectedButton : styles.button}
+            onPress={() => handleMaxNumberChange(number)}
+          >
+            <Text style={styles.buttonText}>{number}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleStartGame}>
         <Text style={styles.buttonText}>Start Game</Text>
       </TouchableOpacity>
@@ -77,9 +95,9 @@ export default function App() {
           options={{ title: 'Countdown Game' }}
         />
         <Stack.Screen
-          name="GameScreen"
-          component={CricketGame}
-          options={{ title: 'Cricket Game' }}
+          name="CountDownGameSingle"
+          component={CountDownGameSingle}
+          options={{ title: 'Countdown Game' }}
         />
       </Stack.Navigator>
   );
