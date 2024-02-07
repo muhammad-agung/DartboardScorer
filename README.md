@@ -6,9 +6,9 @@ Please visit [here](https://muhdagungprojects.blogspot.com/2024/01/dartboard-sco
 
 Here how it looks like once it completed
 
-![alt text]([https://github.com/[username]/[reponame]/blob/[branch]/image.jpg](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(2).jpeg)https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(2).jpeg?raw=true)
+![alt text](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(2).jpeg?raw=true)
 
-![alt text]([https://github.com/[username]/[reponame]/blob/[branch]/image.jpg](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(1).jpeg)https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(2).jpeg?raw=true)
+![alt text](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(1).jpeg?raw=true)
 
-![alt text]([https://github.com/[username]/[reponame]/blob/[branch]/image.jpg](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(0).jpeg)https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(2).jpeg](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(1).JPG)https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(1).JPG?raw=true)
+![alt text](https://github.com/muhammad-agung/dartboardScorer/blob/master/assets/Image/readme%20(1).JPG?raw=true)
 
