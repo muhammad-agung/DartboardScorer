@@ -15,7 +15,7 @@ function App({ route }) {
   const [currentPlayer] = useState(1);
   const [totalPlayers] = useState(1);
   const [totalRounds] = useState(14);
-  const [currentRound, setCurrentRound] = useState(1);
+  const [currentRound, setCurrentRound] = useState(0);
   const [captureCount, setCapturedCount] = useState(0);
   const [capturedData, setCapturedData] = useState([]);
   const [capturedScore, setCapturedScore] = useState([]);
@@ -42,37 +42,39 @@ function initializeScores() {
 }
 
 useEffect(() => {
-
-  //Handle enter button
-  document.addEventListener("keydown", handleEnterKeyFunction);
-
   // Update the score inside the player container whenever the playerScores state changes
   document.getElementById(`score${currentPlayer}`).textContent = `Score: ${playerScores[`player${currentPlayer}`]}`;
   document.getElementById(`currentPlayer`).textContent = `Player ${currentPlayer}`;
 
   //Fetch data from server
   socket.on("arduinoData", (data) => {
-    const mappedArduinoDataToDigit = mapDataToDigitFunction(data);
+  const mappedArduinoDataToDigit = mapDataToDigitFunction(data);
+  
+  //Checks if game has started if not invoke start game
+  if(isStartDialogOpen){
+    startGameFunction()
+  }
 
-    if (RoundcapturingEnabled && mappedArduinoDataToDigit[2] !== "SKIP") {
-      if (captureCount < 3) {
-        //Update point
-        let capturedDatawithType = mappedArduinoDataToDigit[2] + " " + mappedArduinoDataToDigit[1];
-        setCapturedData([...capturedData, capturedDatawithType]);
-        setCapturedCount(captureCount + 1);
-        setCapturedScore([...capturedScore, mappedArduinoDataToDigit[0]]);
-        calculateScore(mappedArduinoDataToDigit[1], mappedArduinoDataToDigit[3]);
-      }
-    } else {
-      if (isNegativeDialogOpen == true) {
-        handleEnterKeyFunction(mappedArduinoDataToDigit[2]);
-      }
+  if (RoundcapturingEnabled) {
+    console.log("RoundcapturingEnabled: " +RoundcapturingEnabled)
+    console.log("mappedArduinoDataToDigit[2]: " +mappedArduinoDataToDigit[2])
+    if(mappedArduinoDataToDigit[2] !== "SKIP"){
+    if (captureCount < 3) {
+      //Update point
+      let capturedDatawithType = mappedArduinoDataToDigit[2] + " " + mappedArduinoDataToDigit[1];
+      setCapturedData([...capturedData, capturedDatawithType]);
+      setCapturedCount(captureCount + 1);
+      setCapturedScore([...capturedScore, mappedArduinoDataToDigit[0]]);
+      calculateScore(mappedArduinoDataToDigit[1], mappedArduinoDataToDigit[3]);
     }
+  }
+  } else {
+    nextPlayerTurn()
+  }
   });
 
   return () => {
     socket.off("arduinoData");
-    document.removeEventListener("keydown", handleEnterKeyFunction);
   };
 }, [RoundcapturingEnabled, captureCount, capturedData, currentRound, currentPlayer, playerScores]);
 
@@ -124,18 +126,7 @@ useEffect(() => {
     return result;
   }
 
-  // Function to handle keydown event
-  function handleEnterKeyFunction(event) {
-    if (event.keyCode === 13) {
-      // Check if the Enter key is pressed (key code 13)
-      event.preventDefault(); // Prevent the default form submission behavior
-      startButtonRef.current.click(); // Simulate a click on the Start button
-    } else if (event == "SKIP") {
-      startButtonRef.current.click(); // Simulate a click on the Start button\
-    }
-  }
-
-  function startNextTurn() {
+  function startGameFunction() {
     if (!RoundcapturingEnabled) {
       setRoundcapturingEnabled(true);
       setCapturedCount(0);
@@ -235,8 +226,7 @@ function showFailureDialog() {
     ).textContent = `Player ${currentPlayer}`;
   }
 
-  // Ref for the Start button
-  const startButtonRef = useRef(null);
+
   return (
     <div className="game-container">
       <div className="score-container">
@@ -287,10 +277,8 @@ function showFailureDialog() {
             border: "none",
           },
         }}
-        isOpen={isStartDialogOpen}
-        onRequestClose={() => setisStartDialogOpen(false)}
-      >
-        <button id="startGame" className="pushable" onClick={startNextTurn}>
+        isOpen={isStartDialogOpen} onRequestClose={() => setisStartDialogOpen(false)}>
+        <button id="startGame" className="pushable" onClick={startGameFunction}>
           {" "}
           <span className="front">START GAME</span>
         </button>
@@ -321,7 +309,6 @@ function showFailureDialog() {
           {isNegativeDialogOpen ? (
            <button
             className="pushable"
-            ref={startButtonRef}
             onClick={nextPlayerTurn}
             >
             {" "}
@@ -330,7 +317,6 @@ function showFailureDialog() {
           ) : (
             <button
             className="pushable"
-            ref={startButtonRef}
             onClick={nextPlayerTurn}
             >
             {" "}
